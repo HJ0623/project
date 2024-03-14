@@ -1,0 +1,121 @@
+"""
+    자료구조 과제4-2 : 
+    
+    중위 표기 수식을 입력 받아 이를 후위 표기 수식으로 변환하고, 계산 결과를 출력하자.
+    
+"""
+
+class ArrayStack:
+    def __init__(self, capacity):
+        self.capacity = capacity
+        self.array = [None] * capacity
+        self.top = -1
+        
+    def isEmpty(self):
+        return self.top == -1
+    
+    def isFull(self):
+        return self.top == self.capacity - 1
+    
+    def push(self, data):
+        if self.isFull():
+            print("Stack is full!")
+            pass
+        else:
+            self.top += 1
+            self.array[self.top] = data
+            
+    def pop(self):
+        if self.isEmpty():
+            print("Stack is empty!")
+            pass
+        else:
+            data = self.array[self.top]
+            self.top -= 1
+            return data
+        
+    def peek(self):
+        if self.isEmpty():
+            print("Stack is empty!")
+            pass
+        else:
+            return self.array[self.top]
+        
+class InfixToPostfix:
+    def __init__(self):
+        self.expr = None
+        self.prOps = {
+            "(" : 0, ")" : 0, "+" : 1, "-" : 1, "*" : 2, "/" : 2    
+        } # priority of operators
+        self.output = None
+                
+    def input(self):
+        self.expr = input("Input expression: ").split()
+        
+        if len(self.expr) == 0:
+            raise ValueError("There are not suitable expression.")
+    
+    def getInfixExpr(self):
+        if len(self.expr) == 0:
+            raise ValueError("There are not suitable expression.")
+        return self.expr
+    
+    def getPostifxExpr(self):
+        if len(self.output) == 0:
+            raise ValueError("Occuring errors from conversion infix expression into postfix expression.")
+        return self.output
+    
+    def convert(self):
+        self.output = []
+        stack = ArrayStack(len(self.expr))
+        
+        for c in self.expr:
+            if c == '(': stack.push(c)
+            elif c == ')': 
+                while not stack.isEmpty():
+                    op = stack.pop()
+                    if op == '(': break
+                    else: self.output.append(op)
+            elif c in "+-*/":
+                while not stack.isEmpty():
+                    op = stack.peek()
+                    if self.prOps[c] <= self.prOps[op]:
+                        self.output.append(op)
+                        stack.pop()
+                    else: break
+                stack.push(c)
+            else: self.output.append(c)
+        
+        while not stack.isEmpty():
+            self.output.append(stack.pop())
+            
+        return self.output
+                
+    def evaluateAsPostfix(self):
+        def operate(a, b, op):
+            if op == "+": return a + b
+            elif op == "-": return a - b
+            elif op == "*": return a * b
+            elif op == "/": return a / b
+        
+        stack = ArrayStack(len(self.output))
+        
+        for c in self.output:
+            if c in "+-*/":
+                b = stack.pop()
+                a = stack.pop()
+                stack.push(operate(a, b, c))
+                
+            else: stack.push(float(c))
+        
+        return stack.pop()
+                     
+if __name__ == "__main__":
+    i2p = InfixToPostfix()
+
+    i2p.input() # input expression, ex) 1 + 2 * 3
+    output = i2p.convert() # inf to post
+    
+    print("Infix expression:    {}".format(i2p.getInfixExpr()))
+    print("Postfix expression:  {}".format(i2p.getPostifxExpr()))
+    print("Evaluation result:   {}".format(i2p.evaluateAsPostfix()))
